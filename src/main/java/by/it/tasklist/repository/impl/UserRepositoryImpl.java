@@ -15,7 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 
-@Repository
+//@Repository
 @RequiredArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
 
@@ -71,7 +71,7 @@ public class UserRepositoryImpl implements UserRepository {
             VALUES (?,?)""";
 
     private final String IS_TASK_OWNER = """
-            SELECT exists(
+            SELECT exists( 
                            SELECT 1
                            FROM users_tasks
                            WHERE user_id = ?
