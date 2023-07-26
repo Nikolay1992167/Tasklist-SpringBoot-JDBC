@@ -28,8 +28,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public User getByUserName(String userName) {
-        return userRepository.findByUserName(userName)
+    public User getByUserName(String username) {
+        return userRepository.findByUserName(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found."));
     }
 
