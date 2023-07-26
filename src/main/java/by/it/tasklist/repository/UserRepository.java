@@ -12,6 +12,6 @@ public interface UserRepository {
     void update(User user);
     void create(User user);
     void insertUserRole(Long userId, Role role);
-    void isTaskOwner(Long userId, Long taskId);
+    boolean isTaskOwner(Long userId, Long taskId);
     void delete(Long id);
 }
