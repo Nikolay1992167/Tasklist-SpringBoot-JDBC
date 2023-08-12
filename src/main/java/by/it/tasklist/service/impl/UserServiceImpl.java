@@ -6,6 +6,10 @@ import by.it.tasklist.domain.user.User;
 import by.it.tasklist.repository.UserRepository;
 import by.it.tasklist.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +25,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "UserService::getById", key = "#id")
     public User getById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found."));
@@ -28,6 +33,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "UserService::getByUserName", key = "#username")
     public User getByUserName(String username) {
         return userRepository.findByUserName(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found."));
@@ -35,6 +41,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @Caching(cacheable = {
+            @Cacheable(value = "UserService::getById", key = "#user.id"),
+            @Cacheable(value = "UserService::getByUserName", key = "#user.username")
+    })
     public User update(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.update(user);
@@ -43,12 +53,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @Caching(put = {
+            @CachePut(value = "UserService::getById", key = "#user.id"),
+            @CachePut(value = "UserService::getByUserName", key = "#user.username")
+    })
     public User create(User user) {
         if (userRepository.findByUserName(user.getUsername()).isPresent()) {
             throw new IllegalStateException("User already exist.");
         }
         if (!user.getPassword().equals(user.getPasswordConfirmation())) {
-            throw new IllegalStateException("Password and password confirmation do not mach.");
+            throw new IllegalStateException("Password and password confirmation do not match.");
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.create(user);
@@ -60,12 +74,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "UserService::isTaskOwner", key = "#userId+'.'+#taskId")
     public boolean isTaskOwner(Long userId, Long taskId) {
         return userRepository.isTaskOwner(userId, taskId);
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = "UserService::getById", key = "#id")
     public void delete(Long id) {
         userRepository.delete(id);
     }

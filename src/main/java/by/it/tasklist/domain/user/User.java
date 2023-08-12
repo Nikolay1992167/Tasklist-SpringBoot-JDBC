@@ -3,11 +3,12 @@ package by.it.tasklist.domain.user;
 import by.it.tasklist.domain.task.Task;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
 @Data
-public class User {
+public class User implements Serializable {
 
     private long id;
     private String name;

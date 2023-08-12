@@ -4,8 +4,10 @@ import by.it.tasklist.domain.exception.AccessDeniedException;
 import by.it.tasklist.domain.exception.ExceptionBody;
 import by.it.tasklist.domain.exception.ResourceMappingException;
 import by.it.tasklist.domain.exception.ResourceNotFoundException;
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -61,15 +63,22 @@ public class ControllerAdvice {
         exceptionBody.setErrors(e.getConstraintViolations().stream()
                 .collect(Collectors.toMap(
                         violation -> violation.getPropertyPath().toString(),
-                        violation -> violation.getMessage()
+                        ConstraintViolation::getMessage
                 )));
         return exceptionBody;
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ExceptionBody handleAuthenticaton(AuthenticationException e){
+        e.printStackTrace();
+        return new ExceptionBody("Authentication failed.");
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ExceptionBody handleException(Exception e){
+        e.printStackTrace();
         return new ExceptionBody("Internal error.");
     }
-
 }
